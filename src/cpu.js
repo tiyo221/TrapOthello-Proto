@@ -36,6 +36,9 @@
   function setLevel(id) {
     if (!levels[id]) throw new Error("未登録の難易度: " + id);
     currentId = id;
+    // 計画は1手番だけ有効。startGame（main.js）が新規対局のたびに setLevel を呼ぶので、
+    // ここで捨てて前局の計画が残らないようにする（同一手番の arm→chooseMove の共有には影響しない）。
+    plan = null;
   }
 
   /**
