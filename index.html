@@ -58,7 +58,8 @@
 
 <!-- 読み込み順に依存関係がある（下ほど上に依存）。classic script のため file:// でもそのまま動く。
      config → rules → game → cpu (→ cpu/<難易度>) → view → main（main が起動する）。詳細は CODING.md §構造。
-     難易度（src/cpu/*.js）は cpu.js が用意した TO.cpuLevels へ登録するので、cpu.js の後に置く。 -->
+     難易度（src/cpu/*.js）は登録先が無ければ自分で作るので順序に依存しないが、
+     読む人が依存の向きを追えるよう cpu.js の後に置く。 -->
 <script src="src/config.js"></script>
 <script src="src/rules.js"></script>
 <script src="src/game.js"></script>

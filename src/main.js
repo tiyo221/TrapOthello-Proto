@@ -64,8 +64,9 @@
     } catch (e) {
       // ここで落ちると手番が CPU のまま止まる。手番だけ進めても次の CPU 手番でまた
       // 落ちるだけなので、止まったことと復帰手段をログに出して原因を追えるようにする。
+      // ログは innerHTML で展開されるため、例外の中身は console 側だけに出す。
       console.error(e);
-      game.say("CPU の思考でエラーが発生しました。「最初から」でやり直してください: " + (e && e.message ? e.message : String(e)), "big");
+      game.say("CPU の思考でエラーが発生しました。「最初から」でやり直してください（詳細はコンソール）。", "big");
       view.render();
       return;
     }
