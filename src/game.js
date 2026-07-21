@@ -37,6 +37,48 @@
   function state() { return S; }
 
   /**
+   * ある手番のプレイヤーが見てよい情報だけを写した対局状況のスナップショット。
+   * **相手の罠の位置は含まない**（含めた時点でカンニングになる）。
+   * @typedef {Object} PublicView
+   * @property {Uint8Array} bd - 盤面のコピー
+   * @property {number} ply - 手数
+   * @property {"play"|"over"} phase - 進行フェーズ
+   * @property {number} me - 見ている側の色
+   * @property {number} foe - 相手の色
+   * @property {Set<number>} myTraps - 自分が伏せてある罠の位置
+   * @property {number} myHand - 自分の未使用の罠
+   * @property {number} myShield - 自分の見切り残数
+   * @property {number} foeTrapCount - 相手が伏せている罠の**数**（位置は不明）
+   * @property {number} foeHand - 相手の未使用の罠
+   * @property {number} foeShield - 相手の見切り残数
+   * @property {Set<number>} fired - 発動済み（公開された）罠のマス
+   */
+
+  /**
+   * 公開情報だけを写したビューを返す。CPU はこれ以外から状態を読まない。
+   * 盤面と集合はコピーなので、受け取った側が書き換えても対局状態には影響しない。
+   * @param {number} color - 見る側の色
+   * @returns {PublicView} 公開情報のスナップショット
+   */
+  function publicView(color) {
+    const foe = 3 - color;
+    return {
+      bd: Uint8Array.from(S.bd),
+      ply: S.ply,
+      phase: S.phase,
+      me: color,
+      foe,
+      myTraps: new Set(S.trap[color]),
+      myHand: S.hand[color],
+      myShield: S.shield[color],
+      foeTrapCount: S.trap[foe].size,
+      foeHand: S.hand[foe],
+      foeShield: S.shield[foe],
+      fired: new Set(S.fired),
+    };
+  }
+
+  /**
    * ログを1行追加する（新しい順・最大60行）。
    * @param {string} t - 本文
    * @param {string} [cls] - 強調クラス（"hot" | "big"）
@@ -191,5 +233,5 @@
     say(b > w ? "あなたの勝ち（" + b + "-" + w + "）" : b < w ? "CPUの勝ち（" + b + "-" + w + "）" : "引き分け（" + b + "-" + w + "）", "hot");
   }
 
-  TO.game = { state, newGame, say, canArm, armTrap, toggleShield, applyMove, doSteal, endTurn, endGame };
+  TO.game = { state, publicView, newGame, say, canArm, armTrap, toggleShield, applyMove, doSteal, endTurn, endGame };
 })();

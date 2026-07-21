@@ -55,7 +55,9 @@
 
 ## 3. CPU
 
-一手先の評価のみの軽量な思考（探索木は持たない）。
+思考は難易度ごとに `src/cpu/<id>.js` へ分ける（現在あるのは **初級**（`beginner`）のみ）。合法手の列挙・盤面評価・見切りの適用は難易度に依らない共通処理として `cpu.js` が持つ。
+
+**初級** — 一手先の評価のみの軽量な思考（探索木は持たない）。相手が伏せている罠の数を見ずに打つ。
 
 - **中盤**：マス評価値（`WEIGHTS`）＋着手可能数の差（`9 * (自分 - 相手)`）。
 - **終盤**（空きマス10以下）：石数差を最優先。
@@ -77,7 +79,9 @@ src/
   config.js     … 盤の定数と調整用パラメータ（TO.config）
   rules.js      … オセロの純粋ルール（TO.rules）
   game.js       … 対局状態と状態遷移（TO.game）
-  cpu.js        … CPU の思考（TO.cpu）
+  cpu.js        … CPU のファサードと共通処理（TO.cpu）
+  cpu/
+    beginner.js … 初級の判断（TO.cpuLevels.beginner）
   view.js       … 描画・アニメーション（TO.view）
   main.js       … 進行制御・入力・起動（公開シンボルなし）
 ```
@@ -91,11 +95,13 @@ src/
 | `config.js` | なし | × | 定数・調整値の単一ソース。バランス調整はここだけを触る |
 | `rules.js` | config | × | 引数の盤面だけを見る純粋関数（状態を持たない） |
 | `game.js` | config, rules | × | 対局状態 `State` の保持と状態遷移（罠・見切り・パス・終局） |
-| `cpu.js` | config, rules, game | × | 思考。`game` の状態を読み、罠の設置だけ副作用を持つ |
+| `cpu.js` | config, rules, game | × | 思考のファサードと共通処理（合法手の列挙・盤面評価）。罠の設置だけ副作用を持つ |
+| `cpu/<id>.js` | config, rules, cpu | × | 難易度ごとの判断（罠を伏せるマス・着手の加点・見切りの可否）。`game` に触れない |
 | `view.js` | config, rules, game | ○ | 状態を読んで描くだけ。対局ロジックを持たない |
 | `main.js` | 全部 | ○ | 入力の受け取り・演出の間合い（`setTimeout`）・手番の受け渡し |
 
 - **状態は `game.js` が一元的に持つ**（`TO.game.state()`）。他のレイヤーは自前で対局状態を複製しない。
+- **CPU は非公開情報を見ない。** 難易度の実装が受け取るのは `TO.game.publicView(color)` が返す公開情報だけで、**相手の罠の位置は含まれない**（相手の罠は「数」まで）。`cpu.js` が唯一 `game` に触れる層で、難易度側は `game` を参照しない。
 - **`view.js` は判定をしない**（勝敗・合法手の判断は `rules` / `game` に委ねる）。
 - **`game.js` / `cpu.js` は `document` / `window` の DOM API に触れない**（そのまま Node で動かせる純粋さを保つ）。
 - **演出のタイミング（`setTimeout`）は `main.js` に集約する**。待ち時間の値は `config.js`（`DELAY_*`）。

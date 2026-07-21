@@ -1,0 +1,68 @@
+/* cpu/beginner.js — 初級。罠を早い段階から吐き出し、相手が伏せている罠を気にしない。
+   受け取れるのは公開ビューだけで、相手の罠の位置は参照できない。 */
+(function () {
+  "use strict";
+  const TO = window.TO;
+  const { WEIGHTS, CPU_ARM_MIN, CPU_ARM_FORCE } = TO.config;
+  const { legalMoves } = TO.rules;
+  const { canArm, hasNeighborStone } = TO.cpu;
+
+  /** 角のマス番号（見切りを切る価値がある大物） */
+  const CORNERS = [0, 7, 56, 63];
+
+  /**
+   * 罠を伏せるマスを選ぶ。石に隣接するマスだけを候補にし、
+   * 「今まさに相手が打てるマス」を高く買う。
+   * @param {PublicView} view - 公開情報
+   * @returns {number|null} 伏せるマス（伏せないなら null）
+   */
+  function armAt(view) {
+    let best = -1e9, at = null;
+    const foeNow = legalMoves(view.bd, view.foe);
+    for (let i = 0; i < 64; i++) {
+      if (!canArm(view, i)) continue;
+      if (!hasNeighborStone(view.bd, i)) continue;
+      let sc = WEIGHTS[i];
+      const f = foeNow.get(i);
+      if (f) sc += 18 + f.length * 6; // 今まさに相手が打てる＝踏ませやすい
+      sc += Math.random() * 10;
+      if (sc > best) { best = sc; at = i; }
+    }
+    const forced = view.ply >= CPU_ARM_FORCE; // 使い残さない
+    return at !== null && (best >= CPU_ARM_MIN || forced) ? at : null;
+  }
+
+  /**
+   * 罠まわりの加点。相手を自分の罠へ誘い込む手を高く買う。
+   * @param {PublicView} view - 公開情報
+   * @param {Uint8Array} nb - 着手後の盤面
+   * @param {number} idx - 着手マス（未使用）
+   * @param {number[]} flips - 裏返る石（未使用）
+   * @returns {number} 加点
+   */
+  function moveBonus(view, nb, idx, flips) {
+    const foeMoves = legalMoves(nb, view.foe);
+    let sc = 0;
+    for (const [k, kf] of foeMoves) if (view.myTraps.has(k)) sc += 12 + kf.length * 9;
+    // 相手の合法手が全部こちらの罠＝どこへ打っても踏む
+    if (foeMoves.size && [...foeMoves.keys()].every((k) => view.myTraps.has(k))) sc += 140;
+    return sc;
+  }
+
+  /**
+   * 見切りを切るか。相手が罠を伏せている状態で、
+   * 角のような「怖くて取れない」大物を取りに行くときに使う。
+   * @param {PublicView} view - 公開情報
+   * @param {number} idx - 着手予定のマス
+   * @param {number[]} flips - 裏返る石
+   * @returns {boolean} 見切りを宣言するなら true
+   */
+  function shouldShield(view, idx, flips) {
+    if (view.myShield <= 0 || view.foeTrapCount <= 0) return false;
+    if (CORNERS.includes(idx)) return true;
+    if (flips.length >= 6) return true;
+    return view.ply >= 52; // 使い残さない
+  }
+
+  TO.cpuLevels.beginner = { armAt, moveBonus, shouldShield };
+})();
