@@ -3,9 +3,9 @@
 (function () {
   "use strict";
   const TO = window.TO;
-  const { WEIGHTS, CPU_ARM_MIN, CPU_ARM_FORCE } = TO.config;
+  const { WEIGHTS, BEGINNER } = TO.config;
   const { legalMoves } = TO.rules;
-  const { canArm, hasNeighborStone } = TO.cpu;
+  const { canArmAt, hasNeighborStone } = TO.cpu;
 
   /** 角のマス番号（見切りを切る価値がある大物） */
   const CORNERS = [0, 7, 56, 63];
@@ -20,16 +20,17 @@
     let best = -1e9, at = null;
     const foeNow = legalMoves(view.bd, view.foe);
     for (let i = 0; i < 64; i++) {
-      if (!canArm(view, i)) continue;
+      if (!canArmAt(view, i)) continue;
       if (!hasNeighborStone(view.bd, i)) continue;
       let sc = WEIGHTS[i];
       const f = foeNow.get(i);
-      if (f) sc += 18 + f.length * 6; // 今まさに相手が打てる＝踏ませやすい
-      sc += Math.random() * 10;
+      // 今まさに相手が打てる＝踏ませやすい
+      if (f) sc += BEGINNER.ARM_PLAYABLE_BASE + f.length * BEGINNER.ARM_PLAYABLE_PER_FLIP;
+      sc += Math.random() * BEGINNER.ARM_NOISE;
       if (sc > best) { best = sc; at = i; }
     }
-    const forced = view.ply >= CPU_ARM_FORCE; // 使い残さない
-    return at !== null && (best >= CPU_ARM_MIN || forced) ? at : null;
+    const forced = view.ply >= BEGINNER.ARM_FORCE_PLY; // 使い残さない
+    return at !== null && (best >= BEGINNER.ARM_MIN || forced) ? at : null;
   }
 
   /**
@@ -43,9 +44,11 @@
   function moveBonus(view, nb, idx, flips) {
     const foeMoves = legalMoves(nb, view.foe);
     let sc = 0;
-    for (const [k, kf] of foeMoves) if (view.myTraps.has(k)) sc += 12 + kf.length * 9;
+    for (const [k, kf] of foeMoves) {
+      if (view.myTraps.has(k)) sc += BEGINNER.LURE_BASE + kf.length * BEGINNER.LURE_PER_FLIP;
+    }
     // 相手の合法手が全部こちらの罠＝どこへ打っても踏む
-    if (foeMoves.size && [...foeMoves.keys()].every((k) => view.myTraps.has(k))) sc += 140;
+    if (foeMoves.size && [...foeMoves.keys()].every((k) => view.myTraps.has(k))) sc += BEGINNER.ALL_TRAPPED;
     return sc;
   }
 
@@ -60,8 +63,8 @@
   function shouldShield(view, idx, flips) {
     if (view.myShield <= 0 || view.foeTrapCount <= 0) return false;
     if (CORNERS.includes(idx)) return true;
-    if (flips.length >= 6) return true;
-    return view.ply >= 52; // 使い残さない
+    if (flips.length >= BEGINNER.SHIELD_MIN_FLIPS) return true;
+    return view.ply >= BEGINNER.SHIELD_FORCE_PLY; // 使い残さない
   }
 
   TO.cpuLevels.beginner = { armAt, moveBonus, shouldShield };

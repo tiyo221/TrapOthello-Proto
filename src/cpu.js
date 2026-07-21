@@ -5,7 +5,10 @@
 (function () {
   "use strict";
   const TO = window.TO;
-  const { EMPTY, CPU, DIRS, WEIGHTS, ARM_FROM_PLY } = TO.config;
+  const {
+    EMPTY, WHITE, CPU, DIRS, WEIGHTS,
+    CPU_ENDGAME_EMPTIES, CPU_ENDGAME_DISC_WEIGHT, CPU_MOBILITY_WEIGHT, CPU_TIE_NOISE,
+  } = TO.config;
   const { inb, legalMoves, counts } = TO.rules;
 
   /** 難易度の実体を載せる場所。各ファイルが TO.cpuLevels["<id>"] = {...} で登録する。 */
@@ -51,12 +54,13 @@
 
   /**
    * そのマスに罠を伏せられるか（公開ビューだけで判定する）。
+   * 判定式は game.canArmOn に一本化してあり、ここは公開ビューを繋ぐだけ。
    * @param {PublicView} view - 公開情報
    * @param {number} idx - マス番号
    * @returns {boolean} 伏せられるなら true
    */
-  function canArm(view, idx) {
-    return view.ply >= ARM_FROM_PLY && view.bd[idx] === EMPTY && !view.myTraps.has(idx);
+  function canArmAt(view, idx) {
+    return TO.game.canArmOn(view.bd, view.ply, view.myTraps, idx);
   }
 
   /**
@@ -96,11 +100,11 @@
   function baseScore(nb, me, foe, endgame) {
     if (endgame) {
       const [b, w] = counts(nb);
-      return (me === CPU ? w - b : b - w) * 120;
+      return (me === WHITE ? w - b : b - w) * CPU_ENDGAME_DISC_WEIGHT;
     }
     let sc = 0;
     for (let i = 0; i < 64; i++) { if (nb[i] === me) sc += WEIGHTS[i]; else if (nb[i] === foe) sc -= WEIGHTS[i]; }
-    return sc + 9 * (legalMoves(nb, me).size - legalMoves(nb, foe).size);
+    return sc + CPU_MOBILITY_WEIGHT * (legalMoves(nb, me).size - legalMoves(nb, foe).size);
   }
 
   /* ---------- 進行制御（main.js）から呼ばれる入口 ---------- */
@@ -124,22 +128,25 @@
   function chooseMove() {
     const view = TO.game.publicView(CPU);
     const lv = impl();
-    const moves = legalMoves(view.bd, CPU);
+    const moves = legalMoves(view.bd, view.me);
     if (!moves.size) return null;
 
-    const endgame = emptyCount(view.bd) <= 10;
+    const endgame = emptyCount(view.bd) <= CPU_ENDGAME_EMPTIES;
     let best = null, bestScore = -1e9, bestFlips = null;
     for (const [idx, f] of moves) {
       const nb = Uint8Array.from(view.bd);
-      nb[idx] = CPU;
-      for (const i of f) nb[i] = CPU;
+      nb[idx] = view.me;
+      for (const i of f) nb[i] = view.me;
 
       // 同点手が続くと毎回同じ対局になるので、小さな揺らぎを加える
-      const sc = baseScore(nb, view.me, view.foe, endgame) + lv.moveBonus(view, nb, idx, f) + Math.random() * 4;
+      const sc = baseScore(nb, view.me, view.foe, endgame) + lv.moveBonus(view, nb, idx, f)
+        + Math.random() * CPU_TIE_NOISE;
       if (sc > bestScore) { bestScore = sc; best = idx; bestFlips = f; }
     }
     return { idx: best, shield: lv.shouldShield(view, best, bestFlips) };
   }
 
-  TO.cpu = { arm, chooseMove, setLevel, level, canArm, hasNeighborStone, baseScore, emptyCount };
+  // 公開するのは進行制御から使う入口と、難易度から使うヘルパだけ。
+  // baseScore / emptyCount は共通処理の内部で完結するので出さない。
+  TO.cpu = { arm, chooseMove, setLevel, level, canArmAt, hasNeighborStone };
 })();

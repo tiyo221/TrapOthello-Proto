@@ -111,12 +111,23 @@
   }
 
   /**
-   * そのマスに罠を伏せられるか。
+   * そのマスに罠を伏せられるかを、盤面と設置者の罠だけから判定する純粋関数。
+   * 対局状態からも公開ビューからも同じ判定を使うため、条件式はここにしか置かない。
+   * @param {Uint8Array} bd - 盤面
+   * @param {number} ply - 手数
+   * @param {Set<number>} traps - 設置者が既に伏せている罠
+   * @param {number} idx - マス番号
+   * @returns {boolean} 伏せられるなら true
+   */
+  function canArmOn(bd, ply, traps, idx) { return ply >= ARM_FROM_PLY && bd[idx] === EMPTY && !traps.has(idx); }
+
+  /**
+   * そのマスに罠を伏せられるか（現在の対局状態で判定する）。
    * @param {number} idx - マス番号
    * @param {number} color - 設置者の色
    * @returns {boolean} 伏せられるなら true
    */
-  function canArm(idx, color) { return S.ply >= ARM_FROM_PLY && S.bd[idx] === EMPTY && !S.trap[color].has(idx); }
+  function canArm(idx, color) { return canArmOn(S.bd, S.ply, S.trap[color], idx); }
 
   /**
    * 罠を1個伏せて手札を消費する（ログも残す）。
@@ -233,5 +244,5 @@
     say(b > w ? "あなたの勝ち（" + b + "-" + w + "）" : b < w ? "CPUの勝ち（" + b + "-" + w + "）" : "引き分け（" + b + "-" + w + "）", "hot");
   }
 
-  TO.game = { state, publicView, newGame, say, canArm, armTrap, toggleShield, applyMove, doSteal, endTurn, endGame };
+  TO.game = { state, publicView, newGame, say, canArm, canArmOn, armTrap, toggleShield, applyMove, doSteal, endTurn, endGame };
 })();
