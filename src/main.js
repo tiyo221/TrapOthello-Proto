@@ -57,8 +57,19 @@
   function cpuTurn() {
     const S = game.state();
     if (S.phase !== "play" || S.turn !== CPU) return;
-    cpu.arm();
-    const choice = cpu.chooseMove();
+    let choice;
+    try {
+      cpu.arm();
+      choice = cpu.chooseMove();
+    } catch (e) {
+      // ここで落ちると手番が CPU のまま止まる。手番だけ進めても次の CPU 手番でまた
+      // 落ちるだけなので、止まったことと復帰手段をログに出して原因を追えるようにする。
+      // ログは innerHTML で展開されるため、例外の中身は console 側だけに出す。
+      console.error(e);
+      game.say("CPU の思考でエラーが発生しました。「最初から」でやり直してください（詳細はコンソール）。", "big");
+      view.render();
+      return;
+    }
     if (!choice) { nextTurn(); return; }
     if (choice.shield) game.say("CPUが見切りを宣言（" + nameOf(choice.idx) + "）", "hot");
     commitMove(choice.idx, CPU, choice.shield);

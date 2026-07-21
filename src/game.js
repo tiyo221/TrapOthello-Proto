@@ -37,6 +37,57 @@
   function state() { return S; }
 
   /**
+   * ある手番のプレイヤーが見てよい情報だけを写した対局状況のスナップショット。
+   * **相手の罠の位置は含まない**（含めた時点でカンニングになる）。
+   * また、相手の見切り宣言（`shieldOn`）も含めない。宣言は相手の手番中にしか立たず
+   * `endTurn` で落ちるため、こちらの手番には存在しない情報だから。
+   *
+   * ここは「見てよい情報の定義」であり、現在の利用状況とは切り離す。
+   * 使われていないフィールドがあっても、公開情報である限り残す。
+   * @typedef {Object} PublicView
+   * @property {Uint8Array} bd - 盤面のコピー
+   * @property {number} ply - 手数
+   * @property {"play"|"over"} phase - 進行フェーズ
+   * @property {number} me - 見ている側の色
+   * @property {number} foe - 相手の色
+   * @property {number} armedThisTurn - この手番に自分が設置した数（上限は ARM_PER_TURN）。
+   *   設置数は手番ごとのカウンタなので、手番でない側から見たときは常に 0
+   * @property {Set<number>} myTraps - 自分が伏せてある罠の位置
+   * @property {number} myHand - 自分の未使用の罠
+   * @property {number} myShield - 自分の見切り残数
+   * @property {number} foeTrapCount - 相手が伏せている罠の**数**（位置は不明）
+   * @property {number} foeHand - 相手の未使用の罠
+   * @property {number} foeShield - 相手の見切り残数
+   * @property {Set<number>} fired - 発動済み（公開された）罠のマス
+   */
+
+  /**
+   * 公開情報だけを写したビューを返す。CPU はこれ以外から状態を読まない。
+   * 盤面と集合はコピーなので、受け取った側が書き換えても対局状態には影響しない。
+   * @param {number} color - 見る側の色
+   * @returns {PublicView} 公開情報のスナップショット
+   */
+  function publicView(color) {
+    const foe = 3 - color;
+    return {
+      bd: Uint8Array.from(S.bd),
+      ply: S.ply,
+      phase: S.phase,
+      me: color,
+      foe,
+      // 設置数は手番ごとのカウンタ（endTurn で 0 に戻る）。手番でない側の「今手番の設置数」は 0
+      armedThisTurn: color === S.turn ? S.armedThisTurn : 0,
+      myTraps: new Set(S.trap[color]),
+      myHand: S.hand[color],
+      myShield: S.shield[color],
+      foeTrapCount: S.trap[foe].size,
+      foeHand: S.hand[foe],
+      foeShield: S.shield[foe],
+      fired: new Set(S.fired),
+    };
+  }
+
+  /**
    * ログを1行追加する（新しい順・最大60行）。
    * @param {string} t - 本文
    * @param {string} [cls] - 強調クラス（"hot" | "big"）
@@ -69,12 +120,26 @@
   }
 
   /**
-   * そのマスに罠を伏せられるか。
+   * そのマスに罠を伏せられるかを、盤面と設置者の罠だけから判定する純粋関数。
+   * 対局状態からも公開ビューからも同じ判定を使うため、条件式はここにしか置かない。
+   * @param {Uint8Array} bd - 盤面
+   * @param {number} ply - 手数
+   * @param {Set<number>} traps - 設置者が既に伏せている罠
+   * @param {number} idx - マス番号
+   * @returns {boolean} 伏せられるなら true
+   */
+  function canArmOn(bd, ply, traps, idx) {
+    if (idx < 0 || idx >= 64) return false; // CPU の難易度実装が任意の値を渡せる境界
+    return ply >= ARM_FROM_PLY && bd[idx] === EMPTY && !traps.has(idx);
+  }
+
+  /**
+   * そのマスに罠を伏せられるか（現在の対局状態で判定する）。
    * @param {number} idx - マス番号
    * @param {number} color - 設置者の色
    * @returns {boolean} 伏せられるなら true
    */
-  function canArm(idx, color) { return S.ply >= ARM_FROM_PLY && S.bd[idx] === EMPTY && !S.trap[color].has(idx); }
+  function canArm(idx, color) { return canArmOn(S.bd, S.ply, S.trap[color], idx); }
 
   /**
    * 罠を1個伏せて手札を消費する（ログも残す）。
@@ -191,5 +256,5 @@
     say(b > w ? "あなたの勝ち（" + b + "-" + w + "）" : b < w ? "CPUの勝ち（" + b + "-" + w + "）" : "引き分け（" + b + "-" + w + "）", "hot");
   }
 
-  TO.game = { state, newGame, say, canArm, armTrap, toggleShield, applyMove, doSteal, endTurn, endGame };
+  TO.game = { state, publicView, newGame, say, canArm, canArmOn, armTrap, toggleShield, applyMove, doSteal, endTurn, endGame };
 })();

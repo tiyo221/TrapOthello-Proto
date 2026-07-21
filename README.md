@@ -31,12 +31,13 @@ styles/board.css… 盤・石・罠・演出
 src/config.js   … 定数と調整用パラメータ（バランス調整はここだけ）
 src/rules.js    … オセロの純粋ルール
 src/game.js     … 対局状態と状態遷移（罠・見切り）
-src/cpu.js      … CPU の思考
+src/cpu.js      … CPU のファサードと共通処理
+src/cpu/*.js    … 難易度ごとの判断（現在は beginner のみ）
 src/view.js     … 描画・アニメーション
 src/main.js     … 進行制御・入力・起動
 ```
 
-依存は一方向（`config → rules → game → cpu → view → main`）。`rules` / `game` / `cpu` は DOM に触れない。詳細は [`spec.md`](spec.md) §4。
+依存は一方向（`config → rules → game → cpu (→ cpu/<難易度>) → view → main`。難易度は `cpu` の葉で、`view` / `main` からは見えない）。`rules` / `game` / `cpu` は DOM に触れず、難易度の実装は公開情報（`game.publicView()`）しか見ない。詳細は [`spec.md`](spec.md) §4。
 
 ## ドキュメント
 
