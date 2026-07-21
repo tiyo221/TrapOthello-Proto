@@ -101,7 +101,7 @@ src/
 | `main.js` | 全部 | ○ | 入力の受け取り・演出の間合い（`setTimeout`）・手番の受け渡し |
 
 - **状態は `game.js` が一元的に持つ**（`TO.game.state()`）。他のレイヤーは自前で対局状態を複製しない。
-- **CPU は非公開情報を見ない。** 難易度の実装が受け取るのは `TO.game.publicView(color)` が返す公開情報だけで、**相手の罠の位置は含まれない**（相手の罠は「数」まで）。`cpu.js` が唯一 `game` に触れる層で、難易度側は `game` を参照しない。
+- **CPU は非公開情報を見ない。** 難易度の実装が受け取るのは `TO.game.publicView(color)` が返す公開情報だけで、**相手の罠の位置は含まれない**（相手の罠は「数」まで）。CPU 系のうち `game` に触れるのは `cpu.js` だけで、難易度側は `game` を参照しない。**これは規約であり、`file://` で動く classic script である以上グローバル（`window.TO`）は難易度からも見える。** 構造で不可能にはできないので、[`CLAUDE.md`](CLAUDE.md) の動作確認で `grep` して担保する。
 - **`view.js` は判定をしない**（勝敗・合法手の判断は `rules` / `game` に委ねる）。
 - **`game.js` / `cpu.js` は `document` / `window` の DOM API に触れない**（そのまま Node で動かせる純粋さを保つ）。
 - **演出のタイミング（`setTimeout`）は `main.js` に集約する**。待ち時間の値は `config.js`（`DELAY_*`）。

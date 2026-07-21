@@ -1,7 +1,8 @@
 /* cpu.js — CPU のファサードと共通処理。DOM に触れない。
    難易度ごとの判断は src/cpu/<id>.js が TO.cpuLevels に載せる。
-   ここが唯一 game に触れる層で、各難易度には公開ビュー（PublicView）しか渡さない。
-   ＝ 難易度側は相手の罠の位置を構造上参照できない。 */
+   CPU 系のうち game に触れるのはここだけで、各難易度には公開ビュー（PublicView）しか渡さない。
+   ただし classic script なので難易度からも window.TO は見えている。「相手の罠の位置を見ない」は
+   規約であり、CLAUDE.md の grep で担保する（構造で不可能にはできない）。 */
 (function () {
   "use strict";
   const TO = window.TO;
@@ -152,7 +153,19 @@
         + Math.random() * CPU_TIE_NOISE;
       if (sc > bestScore) { bestScore = sc; best = idx; bestFlips = f; }
     }
-    return { idx: best, shield: lv.shouldShield(view, best, bestFlips) };
+    // moveBonus が NaN を返すと比較が常に false になり、手を選べないまま抜ける
+    if (best === null) {
+      console.warn("[cpu] 難易度 " + currentId + " の評価が手を選べなかった。先頭の合法手で代替する。");
+      [best, bestFlips] = [...moves.entries()][0];
+    }
+
+    // 見切りは残数を消費する。難易度が残数を見落としても -1 にならないよう共通側で検算する
+    let shield = lv.shouldShield(view, best, bestFlips);
+    if (shield && view.myShield <= 0) {
+      console.warn("[cpu] 難易度 " + currentId + " が残っていない見切りを切ろうとした");
+      shield = false;
+    }
+    return { idx: best, shield };
   }
 
   // 公開するのは進行制御から使う入口と、難易度から使うヘルパだけ。

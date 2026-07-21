@@ -50,7 +50,8 @@
    * @property {"play"|"over"} phase - 進行フェーズ
    * @property {number} me - 見ている側の色
    * @property {number} foe - 相手の色
-   * @property {number} armedThisTurn - この手番に自分が設置した数（上限は ARM_PER_TURN）
+   * @property {number} armedThisTurn - この手番に自分が設置した数（上限は ARM_PER_TURN）。
+   *   設置数は手番ごとのカウンタなので、手番でない側から見たときは常に 0
    * @property {Set<number>} myTraps - 自分が伏せてある罠の位置
    * @property {number} myHand - 自分の未使用の罠
    * @property {number} myShield - 自分の見切り残数
@@ -74,7 +75,8 @@
       phase: S.phase,
       me: color,
       foe,
-      armedThisTurn: S.armedThisTurn,
+      // 設置数は手番ごとのカウンタ（endTurn で 0 に戻る）。手番でない側の「今手番の設置数」は 0
+      armedThisTurn: color === S.turn ? S.armedThisTurn : 0,
       myTraps: new Set(S.trap[color]),
       myHand: S.hand[color],
       myShield: S.shield[color],
