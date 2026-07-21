@@ -37,7 +37,7 @@ src/view.js     … 描画・アニメーション
 src/main.js     … 進行制御・入力・起動
 ```
 
-依存は一方向（`config → rules → game → cpu → cpu/<難易度> → view → main`）。`rules` / `game` / `cpu` は DOM に触れず、難易度の実装は公開情報（`game.publicView()`）しか見ない。詳細は [`spec.md`](spec.md) §4。
+依存は一方向（`config → rules → game → cpu (→ cpu/<難易度>) → view → main`。難易度は `cpu` の葉で、`view` / `main` からは見えない）。`rules` / `game` / `cpu` は DOM に触れず、難易度の実装は公開情報（`game.publicView()`）しか見ない。詳細は [`spec.md`](spec.md) §4。
 
 ## ドキュメント
 

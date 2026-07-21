@@ -5,7 +5,7 @@
   const TO = window.TO;
   const { WEIGHTS, BEGINNER } = TO.config;
   const { legalMoves } = TO.rules;
-  const { canArmAt, hasNeighborStone } = TO.cpu;
+  // TO.cpu は呼び出し時に参照する（読み込み順が前後しても未定義で即死しないため）
 
   /** 角のマス番号（見切りを切る価値がある大物） */
   const CORNERS = [0, 7, 56, 63];
@@ -20,8 +20,8 @@
     let best = -1e9, at = null;
     const foeNow = legalMoves(view.bd, view.foe);
     for (let i = 0; i < 64; i++) {
-      if (!canArmAt(view, i)) continue;
-      if (!hasNeighborStone(view.bd, i)) continue;
+      if (!TO.cpu.canArmAt(view, i)) continue;
+      if (!TO.cpu.hasNeighborStone(view.bd, i)) continue;
       let sc = WEIGHTS[i];
       const f = foeNow.get(i);
       // 今まさに相手が打てる＝踏ませやすい

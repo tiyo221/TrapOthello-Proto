@@ -57,8 +57,18 @@
   function cpuTurn() {
     const S = game.state();
     if (S.phase !== "play" || S.turn !== CPU) return;
-    cpu.arm();
-    const choice = cpu.chooseMove();
+    let choice;
+    try {
+      cpu.arm();
+      choice = cpu.chooseMove();
+    } catch (e) {
+      // ここで落ちると手番が CPU のまま止まり、画面は「思考中…」で固まる。
+      // 黙って固まらせず、盤面のログに出して原因を追えるようにする。
+      console.error(e);
+      game.say("CPU の思考でエラーが発生しました: " + e.message, "big");
+      view.render();
+      return;
+    }
     if (!choice) { nextTurn(); return; }
     if (choice.shield) game.say("CPUが見切りを宣言（" + nameOf(choice.idx) + "）", "hot");
     commitMove(choice.idx, CPU, choice.shield);

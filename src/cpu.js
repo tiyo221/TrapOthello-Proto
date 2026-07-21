@@ -6,10 +6,13 @@
   "use strict";
   const TO = window.TO;
   const {
-    EMPTY, WHITE, CPU, DIRS, WEIGHTS,
+    EMPTY, WHITE, CPU, DIRS, WEIGHTS, ARM_PER_TURN,
     CPU_ENDGAME_EMPTIES, CPU_ENDGAME_DISC_WEIGHT, CPU_MOBILITY_WEIGHT, CPU_TIE_NOISE,
   } = TO.config;
   const { inb, legalMoves, counts } = TO.rules;
+
+  /* 盤面評価のパラメータ（終盤の閾値・重み・揺らぎ）は難易度に依らない共通の値として
+     config.js に置く。難易度ごとに上書きできる仕組みは、必要になるまで作らない。 */
 
   /** 難易度の実体を載せる場所。各ファイルが TO.cpuLevels["<id>"] = {...} で登録する。 */
   const levels = (TO.cpuLevels = TO.cpuLevels || {});
@@ -115,9 +118,15 @@
    */
   function arm() {
     const view = TO.game.publicView(CPU);
-    if (view.myHand <= 0) return;
+    if (view.myHand <= 0 || view.armedThisTurn >= ARM_PER_TURN) return;
     const at = impl().armAt(view);
-    if (at !== null && at >= 0 && TO.game.canArm(at, CPU)) TO.game.armTrap(at, CPU);
+    if (at === null) return;
+    // 難易度が伏せられないマスを返したら実装のバグ。握り潰さず表に出す。
+    if (!TO.game.canArm(at, CPU)) {
+      console.warn("[cpu] 難易度 " + currentId + " が設置できないマスを返した: " + at);
+      return;
+    }
+    TO.game.armTrap(at, CPU);
   }
 
   /**
