@@ -126,7 +126,10 @@
    * @param {number} idx - マス番号
    * @returns {boolean} 伏せられるなら true
    */
-  function canArmOn(bd, ply, traps, idx) { return ply >= ARM_FROM_PLY && bd[idx] === EMPTY && !traps.has(idx); }
+  function canArmOn(bd, ply, traps, idx) {
+    if (idx < 0 || idx >= 64) return false; // CPU の難易度実装が任意の値を渡せる境界
+    return ply >= ARM_FROM_PLY && bd[idx] === EMPTY && !traps.has(idx);
+  }
 
   /**
    * そのマスに罠を伏せられるか（現在の対局状態で判定する）。

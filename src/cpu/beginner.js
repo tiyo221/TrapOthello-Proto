@@ -17,7 +17,7 @@
    * @returns {number|null} 伏せるマス（伏せないなら null）
    */
   function armAt(view) {
-    let best = -1e9, at = null;
+    let best = -Infinity, at = null;
     const foeNow = legalMoves(view.bd, view.foe);
     for (let i = 0; i < 64; i++) {
       if (!TO.cpu.canArmAt(view, i)) continue;
@@ -67,5 +67,6 @@
     return view.ply >= BEGINNER.SHIELD_FORCE_PLY; // 使い残さない
   }
 
-  TO.cpuLevels.beginner = { armAt, moveBonus, shouldShield };
+  // cpu.js より先に読まれても落ちないよう、登録先が無ければ作る
+  (TO.cpuLevels = TO.cpuLevels || {}).beginner = { armAt, moveBonus, shouldShield };
 })();

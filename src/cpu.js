@@ -141,7 +141,7 @@
     if (!moves.size) return null;
 
     const endgame = emptyCount(view.bd) <= CPU_ENDGAME_EMPTIES;
-    let best = null, bestScore = -1e9, bestFlips = null;
+    let best = null, bestScore = -Infinity, bestFlips = null;
     for (const [idx, f] of moves) {
       const nb = Uint8Array.from(view.bd);
       nb[idx] = view.me;

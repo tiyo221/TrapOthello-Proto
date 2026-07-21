@@ -62,10 +62,10 @@
       cpu.arm();
       choice = cpu.chooseMove();
     } catch (e) {
-      // ここで落ちると手番が CPU のまま止まり、画面は「思考中…」で固まる。
-      // 黙って固まらせず、盤面のログに出して原因を追えるようにする。
+      // ここで落ちると手番が CPU のまま止まる。手番だけ進めても次の CPU 手番でまた
+      // 落ちるだけなので、止まったことと復帰手段をログに出して原因を追えるようにする。
       console.error(e);
-      game.say("CPU の思考でエラーが発生しました: " + e.message, "big");
+      game.say("CPU の思考でエラーが発生しました。「最初から」でやり直してください: " + e.message, "big");
       view.render();
       return;
     }
