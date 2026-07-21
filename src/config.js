@@ -32,6 +32,7 @@
     SHIELD_COUNT: 1, // 「見切り」の使用回数／1試合
 
     /* ---- CPU 共通の評価 ---- */
+    CPU_LEVEL_DEFAULT: "intermediate", // 起動時の難易度（難易度セレクトの初期選択もこれに従う）
     CPU_ENDGAME_EMPTIES: 10, // 空きマスがこの数以下なら終盤として石数差で評価する
     CPU_ENDGAME_DISC_WEIGHT: 120, // 終盤の石数差の重み
     CPU_MOBILITY_WEIGHT: 9, // 着手可能数の差の重み
@@ -49,6 +50,29 @@
       ALL_TRAPPED: 140, // 相手の合法手が全部こちらの罠になる局面への加点
       SHIELD_MIN_FLIPS: 6, // この枚数以上を裏返す手なら見切りを切る
       SHIELD_FORCE_PLY: 52, // この手数を過ぎたら見切りを使い残さない
+    },
+
+    /* ---- 中級（intermediate）の調整値 ---- */
+    INTERMEDIATE: {
+      ARM_MIN: 18, // 設置に踏み切る候補スコアの下限
+      ARM_MIN_NO_SHIELD: 6, // 同上・相手の見切りが尽きているとき（罠が確実に効くので強気に）
+      ARM_FORCE_PLY: 44, // この手数を過ぎたら残りを使い切る
+      ARM_PLAYABLE_BASE: 18, // 「今まさに相手が打てるマス」への加点
+      ARM_PLAYABLE_PER_FLIP: 6, // 同上・裏返る枚数あたりの加点
+      ARM_CORNER_VS_SHIELD: 70, // 相手に見切りが残る間、角へ伏せる価値を下げる幅
+      ARM_NOISE: 10, // 設置マスの揺らぎ
+      LURE_BASE: 12, // 相手を罠へ誘い込む手への加点
+      LURE_PER_FLIP: 9, // 同上・裏返る枚数あたりの加点
+      ALL_TRAPPED: 140, // 相手の合法手が全部こちらの罠になる局面への加点
+      RISK_DISC_WEIGHT: 110, // 罠を踏む期待損失（石差）を評価値へ換算する重み
+      SHIELD_MIN_RISK: 1.6, // 期待損失（石差）がこれ以上なら見切りを切る
+      SHIELD_FORCE_PLY: 52, // この手数を過ぎたら見切りを使い残さない
+    },
+
+    /* ---- 上級（advanced）の調整値。判断は中級を引き継ぎ、罠と見切りの運用だけを変える ---- */
+    ADVANCED: {
+      ARM_FROM_PLY: 50, // この手数までは罠を温存する（早いと通貨が弱く、遅いと死に札が増える）
+      SHIELD_FROM_PLY: 46, // この手数までは見切りを温存する
     },
 
     /* ---- 演出の待ち時間（ms。view ではなく進行制御が使う） ---- */

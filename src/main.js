@@ -11,7 +11,7 @@
   const game = TO.game;
   const cpu = TO.cpu;
   const view = TO.view;
-  const { btnArm, btnShield, btnReset } = view.els;
+  const { btnArm, btnShield, btnReset, selLevel } = view.els;
 
   /**
    * 1手を解決して手番を渡す。罠が発動する場合は通常解決を見せてから横取りへ進む。
@@ -114,14 +114,20 @@
 
   btnReset.addEventListener("click", startGame);
 
+  // 難易度の変更は進行中の対局には反映しない（方針と局面が食い違うのを防ぐ）。
+  // 選択を控えておき、次の startGame で確定する。注記の更新のためだけに再描画する。
+  selLevel.addEventListener("change", view.render);
+
   /**
-   * 新規対局を開始する。
+   * 新規対局を開始する。選択中の難易度をこの対局に確定させる。
    */
   function startGame() {
+    cpu.setLevel(selLevel.value);
     game.newGame();
     view.buildBoard(onCell);
     view.render();
   }
 
+  selLevel.value = TO.config.CPU_LEVEL_DEFAULT;
   startGame();
 })();

@@ -59,6 +59,16 @@ button:disabled{opacity:.32;cursor:not-allowed}
 .row{display:flex;gap:8px}
 .row button{flex:1}
 
+/* ---- 難易度セレクト ---- */
+.row.level{align-items:center}
+.row.level label{font-size:12px;color:var(--muted);white-space:nowrap}
+select{
+  font:inherit;font-size:13px;padding:8px 10px;border-radius:6px;flex:1;
+  border:1px solid var(--line);background:#252d35;color:var(--text);cursor:pointer;
+}
+select:hover{border-color:#3d4a56}
+.level-note{font-size:11px;color:var(--gold);line-height:1.5;min-height:1em}
+
 /* ---- ログ・ルール説明 ---- */
 .log{font-size:12px;color:var(--muted);line-height:1.75;max-height:180px;overflow-y:auto}
 .log .hot{color:var(--gold)}

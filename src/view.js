@@ -13,6 +13,11 @@
   const btnArm = document.getElementById("btnArm");
   const btnShield = document.getElementById("btnShield");
   const btnReset = document.getElementById("btnReset");
+  const selLevel = document.getElementById("selLevel");
+  const levelNote = document.getElementById("levelNote");
+
+  /** 難易度IDの表示名 */
+  const LEVEL_LABEL = { beginner: "初級", intermediate: "中級", advanced: "上級" };
 
   /** バナーの見出し・符号。bad＝踏んだ / good＝横取り成功 / safe＝見切り成功 */
   const BANNER_TEXT = {
@@ -54,8 +59,19 @@
     renderBoard(S, moves);
     renderScore(S, myTurn);
     renderPhase(S, myTurn);
+    renderLevel();
 
     logEl.innerHTML = S.logs.map((l) => '<div class="' + (l.cls || "") + '">' + l.t + "</div>").join("");
+  }
+
+  /**
+   * 難易度セレクトの状態を反映する。選択中（次局の難易度）が今の対局の難易度
+   * （`cpu.level()`・startGame で確定）と食い違っていれば、次局から反映される旨を注記する。
+   */
+  function renderLevel() {
+    const selected = selLevel.value;
+    levelNote.textContent =
+      selected !== TO.cpu.level() ? "「" + LEVEL_LABEL[selected] + "」は次の「最初から」で反映されます。" : "";
   }
 
   /**
@@ -164,5 +180,5 @@
     }
   }
 
-  TO.view = { buildBoard, render, showBanner, els: { btnArm, btnShield, btnReset } };
+  TO.view = { buildBoard, render, showBanner, els: { btnArm, btnShield, btnReset, selLevel } };
 })();
