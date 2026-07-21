@@ -1,0 +1,69 @@
+/* base.css — デザイントークン・レイアウト土台・サイドパネル（盤面は board.css） */
+
+:root{
+  --bg:#12161a;
+  --panel:#1b2127;
+  --line:#2a333c;
+  --felt:#1f6b4a;
+  --felt2:#1a5c3f;
+  --gold:#e0a23c;
+  --gold-dim:#7a5a22;
+  --text:#e6e9ec;
+  --muted:#8d99a5;
+  --accent:#4da3ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:"Hiragino Kaku Gothic ProN","Yu Gothic UI",system-ui,sans-serif;
+  min-height:100vh;display:flex;align-items:flex-start;justify-content:center;
+  padding:24px 16px 48px;
+}
+.wrap{display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap;justify-content:center}
+
+/* ---- サイドパネル ---- */
+.panel{width:312px;display:flex;flex-direction:column;gap:13px}
+h1{font-size:19px;letter-spacing:.06em;font-weight:600}
+h1 small{display:block;font-size:11px;color:var(--muted);letter-spacing:.14em;margin-top:4px;font-weight:400}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+.phase{font-size:13px;line-height:1.7}
+.phase b{color:var(--gold)}
+
+/* ---- スコア（石数・手札・見切り残数） ---- */
+.score{display:flex;gap:10px}
+.sc{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.sc.active{border-color:var(--accent)}
+.sc .who{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.sc .who i{width:11px;height:11px;border-radius:50%;display:inline-block}
+.sc .who i.b{background:#2a3038;border:1px solid #555}
+.sc .who i.w{background:#eaeef2}
+.sc .n{font-size:26px;font-weight:600;margin-top:2px}
+.sc .tr{font-size:11px;color:var(--gold-dim);margin-top:3px;letter-spacing:.18em}
+.sc .tr.on{color:var(--gold)}
+.sc .sh{color:#2f5568;letter-spacing:.14em}
+.sc .sh.on{color:#6fc9f0}
+
+/* ---- ボタン ---- */
+button{
+  font:inherit;font-size:13px;padding:9px 14px;border-radius:6px;
+  border:1px solid var(--line);background:#252d35;color:var(--text);cursor:pointer;
+  transition:background .15s,border-color .15s;
+}
+button:hover:not(:disabled){background:#2f3a44;border-color:#3d4a56}
+button.primary{background:var(--gold);color:#221a08;border-color:var(--gold);font-weight:600}
+button.primary:hover:not(:disabled){background:#f0b556}
+button.shield{border-color:#2b6a8a;color:#8fe0ff}
+button.shield:hover:not(:disabled){background:#1d3d4f;border-color:#4e9dc4}
+button.shield.on{background:#5fd0ff;color:#06222e;border-color:#5fd0ff;font-weight:600}
+button:disabled{opacity:.32;cursor:not-allowed}
+.row{display:flex;gap:8px}
+.row button{flex:1}
+
+/* ---- ログ・ルール説明 ---- */
+.log{font-size:12px;color:var(--muted);line-height:1.75;max-height:180px;overflow-y:auto}
+.log .hot{color:var(--gold)}
+.log .big{color:#ff9a7a}
+.rules{font-size:11.5px;color:var(--muted);line-height:1.8}
+.rules b{color:#c3ccd4;font-weight:500}
+
+@media(max-width:760px){ .panel{width:min(92vw,340px)} }

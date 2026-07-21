@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>トラップ・オセロ v4</title>
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/board.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="board-area">
+    <div class="board" id="board"></div>
+    <div class="banner" id="banner">
+      <div class="ttl" id="bnrTtl"></div>
+      <div class="amt" id="bnrAmt"></div>
+      <div class="sub" id="bnrSub"></div>
+    </div>
+    <div class="coords"><span>a</span><span>b</span><span>c</span><span>d</span><span>e</span><span>f</span><span>g</span><span>h</span></div>
+  </div>
+
+  <div class="panel">
+    <h1>トラップ・オセロ<small>HIDDEN TRAP REVERSI &mdash; v4</small></h1>
+
+    <div class="score">
+      <div class="sc" id="scB">
+        <div class="who"><i class="b"></i>あなた（黒）</div>
+        <div class="n" id="nB">2</div>
+        <div class="tr" id="trB"></div>
+      </div>
+      <div class="sc" id="scW">
+        <div class="who"><i class="w"></i>CPU（白）</div>
+        <div class="n" id="nW">2</div>
+        <div class="tr" id="trW"></div>
+      </div>
+    </div>
+
+    <div class="card phase" id="phase">…</div>
+
+    <div class="row">
+      <button class="primary" id="btnArm">罠を仕掛ける</button>
+      <button class="shield" id="btnShield">見切り</button>
+    </div>
+    <div class="row">
+      <button id="btnReset">最初から</button>
+    </div>
+
+    <div class="card log" id="log"></div>
+
+    <div class="card rules">
+      <b>手札</b>：罠を3個持って開始。自分の手番に<b>1個まで</b>、石を置く前に空きマスへ伏せられる。<br>
+      <b>発動</b>：相手がそこへ石を置くと、その手を通常通り解決した後、<b>裏返った石と置かれた石を全部こちらが奪う</b>。<br>
+      <b>相手の罠だけ</b>が自分に反応する。同じマスを両者が仕掛けても互いに残る。<br>
+      <b>見切り</b>：1試合1回、そのターンだけ罠を無効化する。踏んだ罠は<b>解除・公開</b>され、成果はそのまま手に入る。空振りしても消費。<b>使用は相手に見える。</b>
+    </div>
+  </div>
+</div>
+
+<!-- 読み込み順に依存関係がある（下ほど上に依存）。classic script のため file:// でもそのまま動く。
+     config → rules → game → cpu → view → main（main が起動する）。詳細は CODING.md §構造。 -->
+<script src="src/config.js"></script>
+<script src="src/rules.js"></script>
+<script src="src/game.js"></script>
+<script src="src/cpu.js"></script>
+<script src="src/view.js"></script>
+<script src="src/main.js"></script>
+</body>
+</html>
